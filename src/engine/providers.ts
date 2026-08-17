@@ -82,15 +82,41 @@ export interface EnrichmentJobReport {
   errorCode?: string;
 }
 
+function mergeEvidence(
+  existing: Array<Evidence<string>> | undefined,
+  incoming: Array<Evidence<string>> | undefined,
+): Array<Evidence<string>> | undefined {
+  if (incoming === undefined) return existing;
+  if (existing === undefined) return incoming;
+
+  const byValue = new Map(existing.map((item) => [item.value, item]));
+  for (const candidate of incoming) {
+    const current = byValue.get(candidate.value);
+    if (current?.userState === "confirmed" || current?.userState === "corrected") continue;
+    byValue.set(candidate.value, candidate);
+  }
+  return [...byValue.values()];
+}
+
 export function mergeSceneAnalysis(
   visual: VisualContext,
   result: SceneAnalysisResult,
 ): VisualContext {
+  const environment = mergeEvidence(visual.environment, result.environment);
+  const objects = mergeEvidence(visual.objects, result.objects);
+  const lighting = mergeEvidence(visual.lighting, result.lighting);
+
+  const canReplacePeopleCount =
+    !visual.peopleCount ||
+    (visual.peopleCount.userState !== "confirmed" && visual.peopleCount.userState !== "corrected");
+
   return {
     ...visual,
-    ...(result.environment !== undefined ? { environment: result.environment } : {}),
-    ...(result.objects !== undefined ? { objects: result.objects } : {}),
-    ...(result.lighting !== undefined ? { lighting: result.lighting } : {}),
-    ...(result.peopleCount !== undefined ? { peopleCount: result.peopleCount } : {}),
+    ...(environment !== undefined ? { environment } : {}),
+    ...(objects !== undefined ? { objects } : {}),
+    ...(lighting !== undefined ? { lighting } : {}),
+    ...(result.peopleCount !== undefined && canReplacePeopleCount
+      ? { peopleCount: result.peopleCount }
+      : {}),
   };
 }
