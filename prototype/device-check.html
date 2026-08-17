@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Recuerdos Sonoros — Live Device Check</title>
+  <style>
+    :root{color-scheme:dark;--bg:#080808;--panel:#151515;--line:#2d2d2d;--text:#f6f4ef;--muted:#aaa59b;--ok:#c9db7a;--warn:#f0c36a}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,sans-serif;padding:20px}.wrap{max-width:760px;margin:auto}.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}h1{font-size:32px;margin:8px 0 8px}.sub{color:var(--muted);line-height:1.5}.grid{display:grid;gap:14px;margin-top:22px}.card{border:1px solid var(--line);border-radius:18px;background:var(--panel);padding:16px}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.status{font-size:12px;color:var(--muted)}button{border:0;border-radius:12px;padding:11px 14px;font-weight:700;cursor:pointer}.primary{background:#f6f4ef;color:#111}.secondary{background:#252525;color:#fff;border:1px solid #383838}video,canvas{width:100%;border-radius:14px;background:#000;margin-top:12px;max-height:420px;object-fit:cover}.meter{height:12px;background:#242424;border-radius:999px;overflow:hidden;margin-top:12px}.meter>i{display:block;height:100%;width:0;background:var(--ok);transition:width .08s linear}.data{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;color:#d8d5ce;background:#0d0d0d;border-radius:12px;padding:12px;margin-top:12px}.ok{color:var(--ok)}.warn{color:var(--warn)}.note{font-size:12px;color:var(--muted);line-height:1.45;margin-top:10px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Recuerdos Sonoros · PROOF 01B</div>
+  <h1>Live Pixel device check</h1>
+  <p class="sub">This page tests your real browser permissions for camera, GPS and microphone. Data stays in this page and is not uploaded by this prototype.</p>
+
+  <div class="grid">
+    <section class="card">
+      <div class="row"><strong>1 · Rear camera</strong><span id="cameraStatus" class="status">not tested</span></div>
+      <div class="actions"><button id="startCamera" class="primary">Start camera</button><button id="capture" class="secondary" disabled>Capture frame</button></div>
+      <video id="video" autoplay playsinline muted></video>
+      <canvas id="canvas" hidden></canvas>
+      <p class="note">A captured frame remains only in browser memory. This is a capability test, not the native app.</p>
+    </section>
+
+    <section class="card">
+      <div class="row"><strong>2 · Location</strong><span id="geoStatus" class="status">not tested</span></div>
+      <div class="actions"><button id="getLocation" class="primary">Get current location</button></div>
+      <div id="geoData" class="data">No location captured.</div>
+      <p class="note">Coordinates shown here are not sent to GitHub. Do not paste precise private coordinates into public issues.</p>
+    </section>
+
+    <section class="card">
+      <div class="row"><strong>3 · Microphone</strong><span id="micStatus" class="status">not tested</span></div>
+      <div class="actions"><button id="startMic" class="primary">Test microphone</button><button id="stopMic" class="secondary" disabled>Stop</button></div>
+      <div class="meter"><i id="micLevel"></i></div>
+      <p class="note">This measures live audio level only. It does not record, persist or identify the song. ShazamKit is connected in the native phase.</p>
+    </section>
+
+    <section class="card">
+      <div class="row"><strong>4 · Music identity</strong><span class="status warn">provider not connected</span></div>
+      <div class="data">Expected native test example:\nBESO — ROSALÍA & Rauw Alejandro\nstatus: pending ShazamKit Android adapter</div>
+    </section>
+
+    <section class="card">
+      <div class="row"><strong>Device report</strong><span id="secureStatus" class="status"></span></div>
+      <div id="report" class="data"></div>
+      <div class="actions"><button id="copyReport" class="secondary">Copy safe report</button></div>
+      <p class="note">The copied report intentionally excludes GPS coordinates and captured images.</p>
+    </section>
+  </div>
+</div>
+<script>
+  let cameraStream=null,micStream=null,audioContext=null,raf=null;
+  const $=s=>document.querySelector(s);
+  const state={camera:false,cameraError:null,location:false,locationAccuracy:null,locationError:null,microphone:false,micError:null};
+  function status(el,text,ok=false){el.textContent=text;el.className='status '+(ok?'ok':'');refreshReport()}
+  function refreshReport(){
+    const safe={timestamp:new Date().toISOString(),secureContext:window.isSecureContext,userAgent:navigator.userAgent,camera:state.camera,cameraError:state.cameraError,location:state.location,locationAccuracyMeters:state.locationAccuracy,locationError:state.locationError,microphone:state.microphone,microphoneError:state.micError,shazamKit:'not connected in browser preflight'};
+    $('#report').textContent=JSON.stringify(safe,null,2);$('#secureStatus').textContent=window.isSecureContext?'secure context':'NOT secure context';$('#secureStatus').className='status '+(window.isSecureContext?'ok':'warn');
+  }
+  $('#startCamera').onclick=async()=>{try{cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});$('#video').srcObject=cameraStream;state.camera=true;state.cameraError=null;status($('#cameraStatus'),'camera live',true);$('#capture').disabled=false}catch(e){state.camera=false;state.cameraError=e.name;status($('#cameraStatus'),e.name)}};
+  $('#capture').onclick=()=>{const v=$('#video'),c=$('#canvas');if(!v.videoWidth)return;c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);c.hidden=false;status($('#cameraStatus'),'frame captured locally',true)};
+  $('#getLocation').onclick=()=>{if(!navigator.geolocation){state.locationError='GeolocationUnavailable';status($('#geoStatus'),'unavailable');return}status($('#geoStatus'),'requesting…');navigator.geolocation.getCurrentPosition(p=>{state.location=true;state.locationAccuracy=Math.round(p.coords.accuracy);state.locationError=null;$('#geoData').textContent=`latitude: ${p.coords.latitude.toFixed(6)}\nlongitude: ${p.coords.longitude.toFixed(6)}\naccuracy: ±${Math.round(p.coords.accuracy)} m\ntimestamp: ${new Date(p.timestamp).toISOString()}`;status($('#geoStatus'),'location captured',true)},e=>{state.location=false;state.locationError=e.code+': '+e.message;status($('#geoStatus'),'permission/error')},{enableHighAccuracy:true,timeout:15000,maximumAge:0})};
+  $('#startMic').onclick=async()=>{try{micStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});audioContext=new (window.AudioContext||window.webkitAudioContext)();const source=audioContext.createMediaStreamSource(micStream);const analyser=audioContext.createAnalyser();analyser.fftSize=512;source.connect(analyser);const data=new Uint8Array(analyser.frequencyBinCount);state.microphone=true;state.micError=null;status($('#micStatus'),'microphone live',true);$('#stopMic').disabled=false;const tick=()=>{analyser.getByteFrequencyData(data);let sum=0;for(const n of data)sum+=n;const avg=sum/data.length;$('#micLevel').style.width=Math.min(100,avg*1.2)+'%';raf=requestAnimationFrame(tick)};tick()}catch(e){state.microphone=false;state.micError=e.name;status($('#micStatus'),e.name)}};
+  $('#stopMic').onclick=()=>{if(raf)cancelAnimationFrame(raf);if(micStream)micStream.getTracks().forEach(t=>t.stop());if(audioContext)audioContext.close();$('#micLevel').style.width='0';status($('#micStatus'),'stopped',true);$('#stopMic').disabled=true};
+  $('#copyReport').onclick=async()=>{await navigator.clipboard.writeText($('#report').textContent);$('#copyReport').textContent='Copied';setTimeout(()=>$('#copyReport').textContent='Copy safe report',1200)};
+  refreshReport();
+</script>
+</body>
+</html>
