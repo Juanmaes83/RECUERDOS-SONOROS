@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Recuerdos Sonoros — Live Device Check</title>
+  <style>
+    :root{color-scheme:dark;--bg:#080808;--panel:#151515;--line:#2d2d2d;--text:#f6f4ef;--muted:#aaa59b;--ok:#c9db7a;--warn:#f0c36a;--bad:#ef8f8f}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,sans-serif;padding:20px}.wrap{max-width:760px;margin:auto}.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}h1{font-size:32px;margin:8px 0 8px}.sub{color:var(--muted);line-height:1.5}.grid{display:grid;gap:14px;margin-top:22px}.card{border:1px solid var(--line);border-radius:18px;background:var(--panel);padding:16px}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.status{font-size:12px;color:var(--muted)}button{border:0;border-radius:12px;padding:11px 14px;font-weight:700;cursor:pointer}.primary{background:#f6f4ef;color:#111}.secondary{background:#252525;color:#fff;border:1px solid #383838}video,canvas{width:100%;border-radius:14px;background:#000;margin-top:12px;max-height:420px;object-fit:cover}.meter{height:12px;background:#242424;border-radius:999px;overflow:hidden;margin-top:12px}.meter>i{display:block;height:100%;width:0;background:var(--ok);transition:width .08s linear}.data{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;color:#d8d5ce;background:#0d0d0d;border-radius:12px;padding:12px;margin-top:12px}.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}.note{font-size:12px;color:var(--muted);line-height:1.45;margin-top:10px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}.help{display:none;margin-top:12px;padding:12px;border:1px solid #6b5528;background:#211c11;border-radius:12px;color:#ead9aa;font-size:13px;line-height:1.5}.help.show{display:block}.help strong{color:#fff}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Recuerdos Sonoros · PROOF 01B</div>
+  <h1>Live Pixel device check</h1>
+  <p class="sub">This page tests your real browser permissions for camera, GPS and microphone. Data stays in this page and is not uploaded by this prototype.</p>
+
+  <div class="grid">
+    <section class="card">
+      <div class="row"><strong>0 · Device</strong><span id="deviceStatus" class="status">detecting…</span></div>
+      <div id="deviceData" class="data">Reading safe browser device hints…</div>
+      <p class="note">Chrome may deliberately reduce the normal user-agent string. Exact model/version is reported only when the browser exposes high-entropy Client Hints.</p>
+    </section>
+
+    <section class="card">
+      <div class="row"><strong>1 · Rear camera</strong><span id="cameraStatus" class="status">not tested</span></div>
+      <div class="actions"><button id="startCamera" class="primary">Start camera</button><button id="capture" class="secondary" disabled>Capture frame</button></div>
+      <video id="video" autoplay playsinline muted></video>
+      <canvas id="canvas" hidden></canvas>
+      <p class="note">A captured frame remains only in browser memory. This is a capability test, not the native app.</p>
+    </section>
+
+    <section class="card">
+      <div class="row"><strong>2 · Location</strong><span id="geoStatus" class="status">not tested</span></div>
+      <div class="actions"><button id="getLocation" class="primary">Get current location</button></div>
+      <div id="geoData" class="data">No location captured.</div>
+      <p class="note">Coordinates shown here are not sent to GitHub. Do not paste precise private coordinates into public issues.</p>
+    </section>
+
+    <section class="card">
+      <div class="row"><strong>3 · Microphone</strong><span id="micStatus" class="status">not tested</span></div>
+      <div class="actions"><button id="startMic" class="primary">Test microphone</button><button id="stopMic" class="secondary" disabled>Stop</button></div>
+      <div class="meter"><i id="micLevel"></i></div>
+      <div id="micHelp" class="help"></div>
+      <p class="note">This measures live audio level only. It does not record, persist or identify the song. ShazamKit is connected in the native phase.</p>
+    </section>
+
+    <section class="card">
+      <div class="row"><strong>4 · Music identity</strong><span class="status warn">provider not connected</span></div>
+      <div class="data">Expected native test example:\nBESO — ROSALÍA & Rauw Alejandro\nstatus: pending ShazamKit Android adapter</div>
+    </section>
+
+    <section class="card">
+      <div class="row"><strong>Device report</strong><span id="secureStatus" class="status"></span></div>
+      <div id="report" class="data"></div>
+      <div class="actions"><button id="copyReport" class="secondary">Copy safe report</button></div>
+      <p class="note">The copied report intentionally excludes GPS coordinates and captured images.</p>
+    </section>
+  </div>
+</div>
+<script>
+  let cameraStream=null,micStream=null,audioContext=null,raf=null;
+  const $=s=>document.querySelector(s);
+  const state={deviceModel:null,platform:null,platformVersion:null,architecture:null,mobile:null,camera:false,cameraError:null,location:false,locationAccuracy:null,locationError:null,microphone:false,micError:null,micPermission:null};
+  function status(el,text,ok=false,kind=''){el.textContent=text;el.className='status '+(ok?'ok':kind);refreshReport()}
+  async function detectDevice(){
+    try{
+      if(navigator.userAgentData){
+        state.mobile=navigator.userAgentData.mobile;
+        state.platform=navigator.userAgentData.platform||null;
+        if(navigator.userAgentData.getHighEntropyValues){
+          const h=await navigator.userAgentData.getHighEntropyValues(['model','platformVersion','architecture']);
+          state.deviceModel=h.model||null;state.platformVersion=h.platformVersion||null;state.architecture=h.architecture||null;
+        }
+      }
+      const parts=[];
+      if(state.deviceModel)parts.push(`model: ${state.deviceModel}`);
+      if(state.platform)parts.push(`platform: ${state.platform}`);
+      if(state.platformVersion)parts.push(`platform version: ${state.platformVersion}`);
+      if(state.architecture)parts.push(`architecture: ${state.architecture}`);
+      if(state.mobile!==null)parts.push(`mobile: ${state.mobile}`);
+      if(!parts.length)parts.push('No high-entropy device hints exposed by this browser.');
+      $('#deviceData').textContent=parts.join('\n');
+      status($('#deviceStatus'),state.deviceModel?'device identified':'limited browser hints',!!state.deviceModel,state.deviceModel?'':'warn');
+    }catch(e){$('#deviceData').textContent=`Device hints unavailable: ${e.name}`;status($('#deviceStatus'),'hints unavailable',false,'warn')}
+  }
+  async function readMicPermission(){
+    if(!navigator.permissions?.query)return;
+    try{const p=await navigator.permissions.query({name:'microphone'});state.micPermission=p.state;p.onchange=()=>{state.micPermission=p.state;refreshReport()}}catch{}
+  }
+  function showMicHelp(errorName){
+    const box=$('#micHelp');
+    if(errorName==='NotAllowedError'){
+      box.innerHTML='<strong>Microphone permission is blocked.</strong><br>On Chrome Android: tap the icon to the left of the address bar → Permissions → Microphone → Allow. If it is not there, open Chrome Settings → Site settings → Microphone, allow it, return here and press “Test microphone” again.';
+      box.classList.add('show');
+    }else if(errorName){box.textContent=`Microphone error: ${errorName}. Retry after checking browser/site permissions.`;box.classList.add('show')}else{box.classList.remove('show');box.textContent=''}
+  }
+  function refreshReport(){
+    const safe={timestamp:new Date().toISOString(),secureContext:window.isSecureContext,deviceModel:state.deviceModel,platform:state.platform,platformVersion:state.platformVersion,architecture:state.architecture,mobile:state.mobile,userAgent:navigator.userAgent,camera:state.camera,cameraError:state.cameraError,location:state.location,locationAccuracyMeters:state.locationAccuracy,locationError:state.locationError,microphone:state.microphone,microphonePermission:state.micPermission,microphoneError:state.micError,shazamKit:'not connected in browser preflight'};
+    $('#report').textContent=JSON.stringify(safe,null,2);$('#secureStatus').textContent=window.isSecureContext?'secure context':'NOT secure context';$('#secureStatus').className='status '+(window.isSecureContext?'ok':'warn');
+  }
+  $('#startCamera').onclick=async()=>{try{cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});$('#video').srcObject=cameraStream;state.camera=true;state.cameraError=null;status($('#cameraStatus'),'camera live',true);$('#capture').disabled=false}catch(e){state.camera=false;state.cameraError=e.name;status($('#cameraStatus'),e.name,false,'bad')}};
+  $('#capture').onclick=()=>{const v=$('#video'),c=$('#canvas');if(!v.videoWidth)return;c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);c.hidden=false;status($('#cameraStatus'),'frame captured locally',true)};
+  $('#getLocation').onclick=()=>{if(!navigator.geolocation){state.locationError='GeolocationUnavailable';status($('#geoStatus'),'unavailable',false,'bad');return}status($('#geoStatus'),'requesting…');navigator.geolocation.getCurrentPosition(p=>{state.location=true;state.locationAccuracy=Math.round(p.coords.accuracy);state.locationError=null;$('#geoData').textContent=`latitude: ${p.coords.latitude.toFixed(6)}\nlongitude: ${p.coords.longitude.toFixed(6)}\naccuracy: ±${Math.round(p.coords.accuracy)} m\ntimestamp: ${new Date(p.timestamp).toISOString()}`;status($('#geoStatus'),'location captured',true)},e=>{state.location=false;state.locationError=e.code+': '+e.message;status($('#geoStatus'),'permission/error',false,'bad')},{enableHighAccuracy:true,timeout:15000,maximumAge:0})};
+  $('#startMic').onclick=async()=>{try{micStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});audioContext=new (window.AudioContext||window.webkitAudioContext)();const source=audioContext.createMediaStreamSource(micStream);const analyser=audioContext.createAnalyser();analyser.fftSize=512;source.connect(analyser);const data=new Uint8Array(analyser.frequencyBinCount);state.microphone=true;state.micError=null;state.micPermission='granted';showMicHelp(null);status($('#micStatus'),'microphone live',true);$('#stopMic').disabled=false;const tick=()=>{analyser.getByteFrequencyData(data);let sum=0;for(const n of data)sum+=n;const avg=sum/data.length;$('#micLevel').style.width=Math.min(100,avg*1.2)+'%';raf=requestAnimationFrame(tick)};tick()}catch(e){state.microphone=false;state.micError=e.name;await readMicPermission();showMicHelp(e.name);status($('#micStatus'),e.name,false,'bad')}};
+  $('#stopMic').onclick=()=>{if(raf)cancelAnimationFrame(raf);if(micStream)micStream.getTracks().forEach(t=>t.stop());if(audioContext)audioContext.close();$('#micLevel').style.width='0';status($('#micStatus'),'stopped',true);$('#stopMic').disabled=true};
+  $('#copyReport').onclick=async()=>{await navigator.clipboard.writeText($('#report').textContent);$('#copyReport').textContent='Copied';setTimeout(()=>$('#copyReport').textContent='Copy safe report',1200)};
+  Promise.all([detectDevice(),readMicPermission()]).finally(refreshReport);
+</script>
+</body>
+</html>
