@@ -1,0 +1,20 @@
+{
+  "name": "recuerdos-sonoros",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Personal multimodal memory engine — foundation contracts and proof-of-magic implementation.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/**/*.test.ts",
+    "check": "npm run typecheck && npm test"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}

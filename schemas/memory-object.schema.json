@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://recuerdos-sonoros.local/schemas/memory-object/0.1.0",
+  "title": "Recuerdos Sonoros Memory Object",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "schemaVersion", "ownerId", "captureSessionId", "createdAt", "capturedAt", "status", "visual", "audio", "place"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "schemaVersion": {"const": "0.1.0"},
+    "ownerId": {"type": "string", "minLength": 1},
+    "captureSessionId": {"type": "string", "minLength": 1},
+    "createdAt": {"type": "string", "format": "date-time"},
+    "capturedAt": {"type": "string", "format": "date-time"},
+    "timezone": {"type": ["string", "null"]},
+    "status": {"enum": ["captured", "enriching", "ready", "edited", "archived", "deleted"]},
+    "visual": {"$ref": "#/$defs/visual"},
+    "audio": {"$ref": "#/$defs/audio"},
+    "place": {"$ref": "#/$defs/place"},
+    "people": {"type": "array", "items": {"$ref": "#/$defs/personPresence"}},
+    "event": {"$ref": "#/$defs/event"},
+    "emotion": {"$ref": "#/$defs/emotion"},
+    "notes": {"type": "array", "items": {"$ref": "#/$defs/note"}},
+    "tags": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+  },
+  "$defs": {
+    "evidenceString": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "source", "sourceType", "userState"],
+      "properties": {
+        "value": {"type": "string"},
+        "source": {"type": "string"},
+        "sourceType": {"enum": ["observed", "provider", "inferred", "user"]},
+        "confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "observedAt": {"type": ["string", "null"], "format": "date-time"},
+        "derivedAt": {"type": ["string", "null"], "format": "date-time"},
+        "modelVersion": {"type": ["string", "null"]},
+        "userState": {"enum": ["untouched", "confirmed", "corrected", "rejected"]}
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "uri", "privacyState"],
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"enum": ["photo", "video", "keyframe"]},
+        "uri": {"type": "string"},
+        "width": {"type": ["integer", "null"], "minimum": 1},
+        "height": {"type": ["integer", "null"], "minimum": 1},
+        "orientation": {"type": ["string", "null"]},
+        "contentHash": {"type": ["string", "null"]},
+        "privacyState": {"enum": ["local_only", "encrypted_cloud", "shared"]}
+      }
+    },
+    "visual": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primaryAsset"],
+      "properties": {
+        "primaryAsset": {"$ref": "#/$defs/asset"},
+        "environment": {"type": "array", "items": {"$ref": "#/$defs/evidenceString"}},
+        "objects": {"type": "array", "items": {"$ref": "#/$defs/evidenceString"}},
+        "lighting": {"type": "array", "items": {"$ref": "#/$defs/evidenceString"}},
+        "peopleCount": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["value", "source", "sourceType", "userState"],
+          "properties": {
+            "value": {"type": "integer", "minimum": 0},
+            "source": {"type": "string"},
+            "sourceType": {"enum": ["observed", "provider", "inferred", "user"]},
+            "confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+            "userState": {"enum": ["untouched", "confirmed", "corrected", "rejected"]}
+          }
+        }
+      }
+    },
+    "musicMatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "provider"],
+      "properties": {
+        "status": {"enum": ["matched", "no_match", "permission_denied", "unavailable", "error"]},
+        "provider": {"type": ["string", "null"]},
+        "providerMatchId": {"type": ["string", "null"]},
+        "title": {"type": ["string", "null"]},
+        "artist": {"type": ["string", "null"]},
+        "album": {"type": ["string", "null"]},
+        "isrc": {"type": ["string", "null"]},
+        "trackPositionMs": {"type": ["integer", "null"], "minimum": 0},
+        "artworkUri": {"type": ["string", "null"]},
+        "externalUris": {"type": "object", "additionalProperties": {"type": "string"}}
+      }
+    },
+    "audio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identifiedMusic"],
+      "properties": {
+        "identifiedMusic": {"$ref": "#/$defs/musicMatch"},
+        "tempoBpm": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "energy": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "ambientAssetId": {"type": ["string", "null"]}
+      }
+    },
+    "coordinates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {"enum": ["available", "permission_denied", "unavailable", "error"]},
+        "latitude": {"type": ["number", "null"], "minimum": -90, "maximum": 90},
+        "longitude": {"type": ["number", "null"], "minimum": -180, "maximum": 180},
+        "horizontalAccuracyM": {"type": ["number", "null"], "minimum": 0},
+        "observedAt": {"type": ["string", "null"], "format": "date-time"},
+        "source": {"type": ["string", "null"]}
+      }
+    },
+    "semanticPlace": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "provider": {"type": ["string", "null"]},
+        "providerPlaceId": {"type": ["string", "null"]},
+        "name": {"type": ["string", "null"]},
+        "category": {"type": ["string", "null"]},
+        "locality": {"type": ["string", "null"]},
+        "region": {"type": ["string", "null"]},
+        "country": {"type": ["string", "null"]},
+        "confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 1}
+      }
+    },
+    "place": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["location"],
+      "properties": {
+        "location": {"$ref": "#/$defs/coordinates"},
+        "semantic": {"$ref": "#/$defs/semanticPlace"}
+      }
+    },
+    "personPresence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "userState"],
+      "properties": {
+        "id": {"type": "string"},
+        "kind": {"enum": ["known_person", "unnamed_cluster", "manual"]},
+        "displayName": {"type": ["string", "null"]},
+        "personId": {"type": ["string", "null"]},
+        "clusterId": {"type": ["string", "null"]},
+        "confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "userState": {"enum": ["untouched", "confirmed", "corrected", "rejected"]}
+      }
+    },
+    "event": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "title": {"type": ["string", "null"]},
+        "activities": {"type": "array", "items": {"$ref": "#/$defs/evidenceString"}},
+        "tripId": {"type": ["string", "null"]},
+        "calendarEventId": {"type": ["string", "null"]},
+        "generatedSummary": {"type": ["string", "null"]}
+      }
+    },
+    "emotion": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "selfReported": {"type": ["string", "null"]},
+        "signals": {"type": "array", "items": {"$ref": "#/$defs/evidenceString"}},
+        "summary": {"type": ["string", "null"]}
+      }
+    },
+    "note": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "createdAt"],
+      "properties": {
+        "id": {"type": "string"},
+        "kind": {"enum": ["text", "voice_transcript", "generated"]},
+        "text": {"type": ["string", "null"]},
+        "assetId": {"type": ["string", "null"]},
+        "createdAt": {"type": "string", "format": "date-time"}
+      }
+    }
+  }
+}
