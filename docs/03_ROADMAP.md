@@ -1,353 +1,427 @@
 # RECUERDOS SONOROS — ROADMAP
 
+> Current roadmap snapshot: **18 August 2026**.
+
 ## Roadmap principle
 
-The project should advance through **proofs of user value and technical risk**, not through a long feature checklist.
+Advance through **proofs of user value and technical risk**, not through a long feature checklist.
 
-The sequence is:
+The governing sequence is now:
 
-`PROVE THE MAGIC → PROVE THE MEMORY MODEL → PROVE RELIVING → PROVE CONNECTION → PROVE AUTOMATIC STORYTELLING`
+`PROVE NATIVE CAPTURE → PROVE SONG ID → PROVE LOCAL MEMORY → PROVE RELIVE → HARDEN STORAGE/SYNC/PRIVACY → EXPAND INTELLIGENCE → EXPAND RETRIEVAL → CREATE FILMS/LIFE SOUNDTRACK`
+
+---
+
+# CURRENT STATE AT A GLANCE
+
+## Done / materially advanced
+
+- Product thesis and positioning
+- Capability archaeology and Best-in-Family map
+- Versioned Memory Object v0.1
+- JSON Schema + strict TypeScript domain
+- Capture envelope + invariants
+- Human correction precedence over inference
+- Provider architecture for music, location, place, vision and music analysis
+- Enrichment engine with partial/failure states
+- Local-first capture principles
+- Privacy/trust architecture v0.1
+- Browser Proof 01A: one-click capture experience simulator
+- Memory Graph query/connection foundation in PR #5
+- Google Pixel browser preflight:
+  - camera validated
+  - GPS validated
+  - location accuracy observed around 22 m in one real test
+  - microphone permission retest still pending
+
+## Not yet proven
+
+- Native CameraX capture
+- Native microphone access
+- Real ShazamKit Android recognition
+- Real match offset / song position
+- Native local persistence across relaunch
+- Camera + mic + GPS concurrency under Android lifecycle
+- Real-device latency / battery / failure behavior
+- Real context vision provider
+- Production sync / backup / encryption
+- Commercial music playback/licensing path
 
 ---
 
 # FOUNDATION 01 — PRODUCT OS
 
-## Goal
+**Status: COMPLETE AS FOUNDATION / PR #1 OPEN FOR REVIEW**
 
-Freeze the product thesis, capability map and development discipline before implementation.
-
-## Deliverables
+### Delivered
 
 - Product vision
-- Memory Object concept
-- Capability / technology map
-- Initial roadmap
+- Capability map
+- Original roadmap
 - Repository governance
 
-## Exit criterion
+### Remaining
 
-The project can explain:
-
-1. what problem it solves;
-2. what the core experience is;
-3. which capabilities are product-specific;
-4. which capabilities should be borrowed or integrated;
-5. what the first technical proof must demonstrate.
+Review / merge discipline only. No conceptual blocker.
 
 ---
 
-# FOUNDATION 02 — MEMORY OBJECT SPEC
+# FOUNDATION 02 — MEMORY OBJECT + CAPTURE DOMAIN
 
-## Goal
+**Status: MATERIAL FOUNDATION COMPLETE / PR #2 OPEN**
 
-Turn the conceptual Memory Object into a versioned data contract.
+### Delivered
 
-## Define
+- `Memory Object v0.1`
+- machine-readable schema
+- strict TypeScript types
+- capture envelope
+- invariants
+- fixtures
+- provider contracts
+- enrichment engine
+- partial failure states
+- provenance/confidence rules
+- human correction precedence
+- privacy/trust architecture
+- test suite written
 
-- IDs
-- photo/video assets
-- track identity
-- track position / recognition event
-- capture timestamp
-- GPS + place
-- user note
-- voice note
-- people associations
-- event/activity
-- emotion
-- inferred context
-- provenance
-- confidence
-- privacy state
-- sync state
-- deletion/export state
+### Remaining before calling it production-ready
 
-## Requirements
-
-- works offline at capture time;
-- can accept missing song/location/context;
-- user corrections override inference without losing provenance;
-- future fields can be added without invalidating old memories.
-
-## Exit criterion
-
-A Memory Object can be serialised, validated and reconstructed independently from the UI.
+- native persistence implementation
+- migrations
+- encrypted storage decisions
+- backup/sync contract
+- confirmed CI execution
 
 ---
 
-# PROOF 01 — PROOF OF MAGIC
+# FOUNDATION 03 — MEMORY GRAPH / RETRIEVAL
 
-## Goal
+**Status: FOUNDATION IMPLEMENTED / PR #5 OPEN**
 
-Validate the defining experience on a real mobile device.
+### Delivered
 
-## User flow
+- `queryMemories()`
+- `groupConnections()`
+- `findRelatedMemories()`
+- explainable scoring
+- song/place/person/tag/time queries
+
+### Do not over-expand yet
+
+The Memory Graph is valuable, but it is **not the current critical path**. Do not build graph UI, embeddings or graph DB infrastructure until native capture is proven.
+
+---
+
+# PROOF 01A — EXPERIENCE SIMULATOR
+
+**Status: COMPLETE FOR UX PURPOSE / PR #3 OPEN**
+
+### Proves
+
+- camera-first interaction hierarchy
+- one-click capture
+- immediate `Memory saved`
+- progressive enrichment after capture
+- synthetic music/place/light/scene resolution
+- first Relive card
+
+### Does NOT prove
+
+- real camera integration
+- real GPS
+- real microphone
+- real music identification
+- native persistence
+
+The simulator must never be cited as native technical proof.
+
+---
+
+# PROOF 01B — ANDROID PIXEL NATIVE PROOF OF MAGIC
+
+**Status: ACTIVE / HIGHEST PRIORITY / PR #6 + Issue #4**
+
+## Target flow
 
 ```text
 OPEN APP
 ↓
-SONG IS PLAYING AROUND USER
+CAMERA READY
 ↓
-TAKE PHOTO
+EPHEMERAL MICROPHONE WINDOW
 ↓
-IDENTIFY SONG
+CLICK
 ↓
-CAPTURE DATE/TIME
+PHOTO SAVED LOCALLY
++
+CAPTURE TIMESTAMP FROZEN
++
+GPS OBSERVATION
 ↓
-CAPTURE GPS
+MUSIC IDENTIFICATION
 ↓
-RESOLVE PLACE
+TRACK + ARTIST + MATCH OFFSET (IF AVAILABLE)
 ↓
-CREATE MEMORY OBJECT
+MEMORY OBJECT ENRICHED
 ↓
-OPEN MEMORY DETAIL
+APP RELAUNCH
+↓
+MEMORY STILL EXISTS
+↓
+RELIVE
 ```
 
-## Minimal UI
+## Current physical-device evidence
 
-- Camera
-- Recognition state
-- Saved memory confirmation
-- Memory detail
-- Timeline/list of captured memories
+A real Google Pixel browser preflight has already returned:
 
-## Primary technology questions
+- secure context: `true`
+- camera: `true`
+- location: `true`
+- location accuracy observed: ~22 m
+- microphone: `false`
+- microphone error: `NotAllowedError`
+- ShazamKit: not connected in browser preflight
 
-- Native vs React Native foundation
-- ShazamKit integration behavior
-- recognition latency
-- microphone + camera concurrency
-- iOS/Android differences
-- offline failure modes
-- permission UX
-- battery impact
+Interpretation:
 
-## Exit criterion
+- camera capability: **validated at browser/device level**
+- GPS capability: **validated at browser/device level**
+- microphone: **not failed technically yet; permission retest pending**
+- song recognition: **not tested yet**
 
-A real user can capture ten memories in normal environments and the core flow feels faster than manually documenting the moment.
+## User-dependent pending test
 
----
+The user has not yet had time to rerun the preflight after enabling microphone permission. This is **PENDING**, not a blocker for documentation work and not a failure.
 
-# PROOF 02 — RELIVE THE MOMENT
+## Exit criteria
 
-## Goal
+Proof 01B is complete only when the physical Pixel can demonstrate:
 
-Prove that the saved combination is emotionally stronger than an ordinary photo card.
-
-## Build
-
-- full-screen memory detail
-- song metadata / artwork reference
-- place + time presentation
-- user note / voice note
-- optional playback handoff to authorised music provider
-- subtle transitions
-
-## Experiment
-
-Test three modes:
-
-1. static photo + metadata;
-2. photo + song context;
-3. photo + subtle audio-reactive visual treatment.
-
-## Source references
-
-- `places-have-sound`
-- `audioptix`
-- `AudioBasedImageDistortion`
-- `webcam-audio-visualizer`
-
-## Exit criterion
-
-Choose a reliving pattern that adds emotional value without becoming a gimmicky music visualizer.
+1. Native photo capture.
+2. Native location observation.
+3. Native microphone access.
+4. Ambient song recognition through the chosen provider.
+5. Song metadata attached to the Memory Object.
+6. Match offset saved when exposed by provider.
+7. Memory committed locally before enrichment finishes.
+8. App relaunch preserves the memory.
+9. Capture remains valid if music or location is unavailable.
+10. No raw ambient conversation is persisted by default.
+11. Measured shutter-to-local-save and recognition latency.
 
 ---
 
-# PROOF 03 — SOUND MEMORY MAP
+# GATE A — DO NOT SKIP
 
-## Goal
+Do **not** call the Proof of Magic solved until Proof 01B exits successfully.
 
-Validate place as a second major navigation axis after chronology.
+Once it exits, the main product question changes from:
 
-## Build
+> “Can the defining capture loop work?”
 
-- map with memory clusters
+into:
+
+> “Can we make it reliable, private and valuable enough to use for years?”
+
+---
+
+# POST-PROOF ATTACK SEQUENCE
+
+## 1. STORAGE / LOCAL-FIRST HARDENING
+
+### Build
+
+- Android local database / repository implementation
+- media file lifecycle
+- schema migrations
+- crash-safe writes
+- deduplication / idempotency
+- pending enrichment queue
+- offline recovery
+
+### Exit criterion
+
+No captured memory is lost across app close, crash, network loss or provider failure.
+
+---
+
+## 2. PROOF 02 — RELIVE THE MOMENT
+
+### Build
+
+- real captured photo
+- real song identity/context
+- place/time presentation
+- note / voice note
+- authorised playback handoff
+- subtle audio-reactive visual experiment
+
+### Compare
+
+1. photo only;
+2. photo + song/place/time;
+3. photo + subtle audio-reactive relive.
+
+### Exit criterion
+
+Choose a reliving pattern that adds emotional value without becoming a gimmicky visualizer.
+
+---
+
+## 3. PRIVACY / SECURITY MODEL V1
+
+### Decide and implement
+
+- local encryption
+- what is uploaded vs remains on-device
+- account model
+- sync encryption / transport
+- export/delete
+- home/private-place handling
+- retention rules
+- analytics boundary
+- secrets/token management
+
+### Exit criterion
+
+A privacy review can explain every sensitive data flow from capture to deletion.
+
+---
+
+## 4. SYNC / BACKUP / RECOVERY
+
+### Build
+
+- optional account
+- cloud backup
+- sync journal / conflict strategy
+- device migration
+- resumable media upload
+- retry queue
+- restore test
+
+### Exit criterion
+
+A user can lose or replace the phone without losing the memory library.
+
+---
+
+## 5. PROOF 03 — SOUND MEMORY MAP
+
+### Build
+
+- map with privacy-aware memory clusters
 - place detail
-- songs associated with place
-- memories associated with place
-- optional trip grouping
+- songs by place
+- memories by place
+- trip grouping
 
-## Key questions
+### Exit criterion
 
-- exact location vs privacy-preserving location display;
-- map density;
-- duplicate POIs;
-- how to handle home/private places;
-- whether music or visual memory should lead the interaction.
-
-## Exit criterion
-
-Users can answer “what did my life sound like here?” in a useful, intuitive way.
+The user can answer: **“What did my life sound like here?”**
 
 ---
 
-# PROOF 04 — MUSIC AS MEMORY SEARCH
+## 6. PROOF 04 — MUSIC AS MEMORY SEARCH
 
-## Goal
+### Build
 
-Make music a true retrieval interface.
-
-## Build
-
-- song detail → related memories
-- artist detail → related memories
+- song page
+- artist page
 - recurring songs
 - song chronology
-- search by track / artist
+- Memory Graph UI
 
-## Example
+### Foundation already available
 
-```text
-HEROES — DAVID BOWIE
-├── Berlin — 2024
-├── Alicante — 2026
-└── London — 2028
-```
+Use FOUNDATION 03 rather than rebuilding retrieval logic.
 
-## Exit criterion
+### Exit criterion
 
-The same song can act as an emotional index across multiple years/places.
+The same song becomes an emotional index across years, places and people.
 
 ---
 
-# PROOF 05 — CONTEXT INTELLIGENCE
+## 7. PROOF 05 — CONTEXT INTELLIGENCE
 
-## Goal
-
-Reduce manual tagging while preserving user trust.
-
-## Candidate inference
+### Build cautiously
 
 - scene
 - people count
 - objects
-- activity
-- broad visual context
+- broad activity
+- lighting
 - optional mood suggestions
 
-## Technology candidates
+### Rules
 
-- MediaPipe / on-device vision
-- other on-device models where justified
+- inference is suggestion, not truth
+- provenance/confidence always retained
+- user can correct/delete
+- no biometric identity by default
+- prefer on-device processing when practical
 
-## Rules
+### Exit criterion
 
-- inference is suggestion, not truth;
-- store source/confidence;
-- user can correct/delete;
-- do not perform identity recognition by default;
-- privacy review before any cloud vision processing.
-
-## Exit criterion
-
-Automatic enrichment measurably reduces user effort without creating creepy or false memory descriptions.
+Automatic enrichment reduces user effort without producing false or creepy memory narratives.
 
 ---
 
 # V1 — PRIVATE MEMORY PRODUCT
 
-## Goal
+Only start V1 consolidation after Proof 01B + local persistence + privacy model are credible.
 
-Turn the proofs into a coherent private beta.
+## V1 scope
 
-## Scope
-
-- account/authentication
-- secure cloud sync
-- offline-first capture
-- photo memories
-- music recognition
-- time/place
+- Android capture
+- music identification
+- timestamp/location
+- durable local memory
 - notes / voice notes
-- chronological timeline
+- timeline
+- song/place retrieval
 - map
-- song/artist retrieval
-- search/filter
 - export/delete
+- optional secure sync
 - privacy controls
-- crash/error monitoring
-- analytics limited to product health and explicitly non-sensitive events
+- production QA / crash reporting
 
-## Explicitly not required for V1
+## Explicitly NOT required for V1
 
 - public social feed
+- biometric face identity
 - creator marketplace
 - complex video editor
-- generative avatar features
-- full graph database
-- music generation
-
-## Exit criterion
-
-A small external cohort can use Recuerdos Sonoros as a real personal memory product for multiple weeks.
+- graph database
+- generative avatars
 
 ---
 
 # V1.5 — MEMORY CONNECTIONS
 
-## Goal
-
-Increase long-term retention and emotional rediscovery.
-
-## Features
-
-- “On this day” sound memories
+- On this day
 - recurring song patterns
 - place retrospectives
-- person/event collections
+- people/event collections
 - trip collections
-- monthly / seasonal soundtracks
-- semantic memory search if justified
-
-## Exit criterion
-
-The app becomes more valuable as the user’s history grows.
+- seasonal / annual soundtracks
 
 ---
 
 # V2 — MEMORY FILMS
 
-## Goal
+Use the capability advantage already identified in:
 
-Transform structured memories into automatic audiovisual stories.
-
-## Inputs
-
-- selected period
-- selected people
-- selected places
-- selected memories
-- associated music data
-- optional user-selected soundtrack
-
-## Engine candidates
-
-### Beat / structure intelligence
-
-- `VisionCutterMusic` patterns
-- Essentia / DSP where licensing permits
-
-### Interactive preview/edit
-
-- `core-BROWSER-VIDEO` / Diffusion Studio Core
+- `VisionCutterMusic`
+- `core-BROWSER-VIDEO`
+- `remotion`
 - Mediabunny
+- audio-reactive references
 
-### Deterministic final rendering
-
-- Remotion
-
-## Products
+Products:
 
 - Trip Film
 - Summer Film
@@ -356,93 +430,108 @@ Transform structured memories into automatic audiovisual stories.
 - Place Story
 - Song Story
 
-## Exit criterion
-
-The system can generate a polished, emotionally coherent short film without requiring professional editing knowledge.
-
 ---
 
 # V3 — PERSONAL MEMORY GRAPH
 
-## Goal
-
-Treat the accumulated history as a queryable autobiographical system.
-
-## Relationships
+Relationship model:
 
 `SONG ↔ MEMORY ↔ PERSON ↔ PLACE ↔ EVENT ↔ PERIOD`
 
-## Example queries
-
-- “What did we listen to in Italy?”
-- “Show happy summer memories with Marta.”
-- “Which songs recur in my memories with my father?”
-- “Show my twenties through music.”
-
-## Architecture rule
-
-Start with relational queries and embeddings where needed. Introduce a graph database only if measured query complexity demands it.
+Only introduce graph/vector infrastructure when measured query needs justify it.
 
 ---
 
 # V4 — LIFE SOUNDTRACK
 
-## Goal
-
-Create a unique longitudinal view of the user’s life through music and memory.
-
-## Potential experiences
+Potential experiences:
 
 - personal music eras
 - songs by life chapter
 - people ↔ music relationships
 - cities ↔ music relationships
-- yearly soundtrack
-- decade soundtrack
-- “songs that followed me”
+- yearly / decade soundtrack
 - audiovisual autobiography
 
 ---
 
-# Cross-cutting workstreams
+# THE THREE BIG PROBLEMS TO DEFEAT
 
-These do not wait until a late phase.
+These are the strategic engineering mountains. Everything else is secondary until these are under control.
 
-## Privacy & security
+## BIG PROBLEM 1 — FRICTIONLESS MULTIMODAL CAPTURE
 
-Must evolve with every proof.
+**Difficulty: 8/10**
 
-## Licensing
+Need camera + microphone + song recognition + GPS + exact timestamp to coexist without slowing the shutter experience.
 
-Review ShazamKit, music provider playback, artwork, Essentia, Diffusion Studio Core, Remotion and every external dependency before commercial adoption.
+Success means:
 
-## QA
+`CLICK → MEMORY EXISTS IMMEDIATELY`, while enrichment continues asynchronously.
 
-Test on real phones, noisy environments, poor connectivity, denied permissions and recognition failures.
+## BIG PROBLEM 2 — DURABLE LOCAL-FIRST STORAGE + SYNC
 
-## Performance
+**Difficulty: 9/10**
 
-Capture must remain fast even as enrichment becomes more sophisticated.
+Need offline capture, crash safety, migrations, media lifecycle, retries, backup, conflict handling, device replacement and no memory loss.
 
-## Accessibility
+This is likely the hardest pure engineering problem of V1.
 
-Camera, memory navigation, map, audio controls and generated films require accessible alternatives.
+## BIG PROBLEM 3 — TRUST: PRIVACY + CORRECT CONTEXT
 
-## Data portability
+**Difficulty: 9/10 product / security**
 
-The user must ultimately be able to export their memories in a durable format.
+The product combines photo, location, music, people, time and emotional/contextual inference. It must avoid both surveillance-like behavior and fabricated memory narratives.
+
+Success requires:
+
+- minimised data collection
+- transparent permissions
+- no ambient conversation retention by default
+- strong user ownership
+- explainable provenance/confidence
+- human corrections overriding AI
+- safe export/delete/recovery
 
 ---
 
-# Immediate next sequence
+# CURRENT PRIORITY ORDER
 
-1. Approve / refine FOUNDATION 01.
-2. Write FOUNDATION 02 — Memory Object v0.1 schema.
-3. Decide mobile architecture spike: native vs React Native.
-4. Create ShazamKit recognition spike.
-5. Create camera + recognition + GPS integration proof.
-6. Test Proof of Magic on real device.
-7. Only then expand into map, vision intelligence and audiovisual reliving.
+```text
+P0  Complete Pixel microphone preflight when user has time
+P0  Native Android project / CameraX capture
+P0  Native location adapter
+P0  MusicIdentityProvider → ShazamKit Android proof
+P0  Durable local Memory Object persistence
+P0  Measure latency + failure modes
+
+P1  Real Relive prototype
+P1  Reverse geocoding / place semantics
+P1  Privacy/security implementation decisions
+P1  Offline enrichment queue
+
+P2  Sync / backup / restore
+P2  Sound Memory Map
+P2  Song / Memory Graph UI
+P2  Context vision
+
+P3  Memory Films
+P3  Life Soundtrack
+P3  advanced semantic/graph experiences
+```
+
+---
+
+# ESTIMATED PROGRESS — DO NOT MISREAD
+
+These percentages are directional project planning estimates, not story-point accounting.
+
+- Product concept / architecture: **~70–85% defined**
+- Proof of Magic: **~45–55%** before real native song-ID proof
+- Commercial V1: **~20–25%** overall
+- Full long-term vision: **~10–15%**
+
+The repository advantage is substantial in multimedia, audio-reactive experience, video composition and future Memory Films, but it does **not** eliminate the hard native/mobile/storage/security work.
 
 ---
 
